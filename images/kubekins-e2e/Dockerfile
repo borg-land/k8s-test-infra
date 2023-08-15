@@ -42,8 +42,7 @@ RUN apt-get update && \
     graphviz \
     rpm && \
     rm -rf /var/lib/apt/lists/*
-# preinstall this for kops tests xref kubetest prepareAws(...)
-# TODO(krzyzacy,justisb,chrislovecnm): remove this
+# install aws cli
 RUN pip install --no-cache-dir awscli
 
 # install cfssl to prevent https://github.com/kubernetes/kubernetes/issues/55589
@@ -93,9 +92,11 @@ RUN if [ -n "${KIND_VERSION}" ]; then \
     fi
 
 # install kubetest2 binaries if a version is provided
+# kubetest2 isn't versioned yet so building master, go install isn't preferred because ldflags are missed
 ARG KUBETEST2_VERSION
 RUN if [ -n "${KUBETEST2_VERSION}" ]; then \
-    go install sigs.k8s.io/kubetest2/...@"${KUBETEST2_VERSION}"; \
+    git clone https://github.com/kubernetes-sigs/kubetest2.git /tmp/kubetest2 && cd /tmp/kubetest2 && \
+    make install-all; \
     fi
 
 # configure dockerd to use mirror.gcr.io
